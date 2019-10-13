@@ -48,16 +48,12 @@
       (q/end-shape))))
 
 
-(comment
-
-  (q/defsketch terrain
-    :title "You spin my circle right round"
-    :size [1000 1000]
-    :renderer :p3d
-    :setup setup
-    :update update-state
-    :draw draw-state
-    :features [:keep-on-top]
-    :middleware [m/fun-mode])
-
-  )
+(q/defsketch terrain
+  :title "You spin my circle right round"
+  :size [1000 1000]
+  :renderer :p3d
+  :setup setup
+  :update update-state
+  :draw draw-state
+  :features [:keep-on-top]
+  :middleware [m/fun-mode])
