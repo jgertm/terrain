@@ -3,46 +3,61 @@
             [quil.middleware :as m]))
 
 (defn setup []
-  ; Set frame rate to 30 frames per second.
-  (q/frame-rate 30)
-  ; Set color mode to HSB (HSV) instead of default RGB.
+  (q/smooth 8)
+  (q/frame-rate 60)
   (q/color-mode :hsb)
-  ; setup function returns initial state. It contains
-  ; circle color and position.
-  {:color 0
-   :angle 0})
+
+  {:position {:y 0}})
 
 (defn update-state [state]
-  ; Update sketch state by changing circle color and position.
-  {:color (mod (+ (:color state) 0.7) 255)
-   :angle (+ (:angle state) 0.1)})
+  (-> state
+    (update-in [:position :y] inc)))
 
 (defn draw-state [state]
-  ; Clear the sketch by filling it with light-grey color.
-  (q/background 240)
-  ; Set circle color.
-  (q/fill (:color state) 255 255)
-  ; Calculate x and y coordinates of the circle.
-  (let [angle (:angle state)
-        x (* 150 (q/cos angle))
-        y (* 150 (q/sin angle))]
-    ; Move origin point to the center of the sketch.
-    (q/with-translation [(/ (q/width) 2)
-                         (/ (q/height) 2)]
-      ; Draw the circle.
-      (q/ellipse x y 100 100))))
+  (q/background 0)
+  (q/stroke 255)
+  (q/fill 0)
+
+  (q/translate 0 200 0)
+  (q/rotate-x (/ q/PI 3))
+
+  (let [scale       50
+        rows        100
+        columns     100
+        noise-scale (/ 0.005)
+        noise-mag   100
+        speed 6
+        noise
+        (fn [x y]
+          (q/map-range
+            (q/noise
+              (/ x noise-scale)
+              (/ (+ y (* speed (-> state :position :y))) noise-scale))
+            0 1
+            (- noise-mag) noise-mag))]
+    (doseq [column (range columns)]
+      (q/begin-shape :triangle-strip)
+      (doseq [row (range rows)]
+        (let [x  (* scale column)
+              y  (* scale row)
+              xn (+ x scale)
+              z (noise x y)
+              zn (noise xn y)]
+          (q/vertex x y z)
+          (q/vertex xn y zn)))
+      (q/end-shape))))
 
 
-(q/defsketch terrain
-  :title "You spin my circle right round"
-  :size [500 500]
-  ; setup function called only once, during sketch initialization.
-  :setup setup
-  ; update-state is called on each iteration before draw-state.
-  :update update-state
-  :draw draw-state
-  :features [:keep-on-top]
-  ; This sketch uses functional-mode middleware.
-  ; Check quil wiki for more info about middlewares and particularly
-  ; fun-mode.
-  :middleware [m/fun-mode])
+(comment
+
+  (q/defsketch terrain
+    :title "You spin my circle right round"
+    :size [1000 1000]
+    :renderer :p3d
+    :setup setup
+    :update update-state
+    :draw draw-state
+    :features [:keep-on-top]
+    :middleware [m/fun-mode])
+
+  )
